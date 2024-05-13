@@ -59,9 +59,6 @@ services:
     image: rabbitmq:3.9-management
     container_name: kanastra-rabbitmq
     restart: unless-stopped
-    volumes:
-      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.config:ro
-      - ./rabbitmq/definitions.json:/opt/definitions.json:ro
     ports:
       - "5672:5672"
       - "15672:15672"
