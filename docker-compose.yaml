@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:80"
     volumes:
-      - ../kanastra-challenge-backend:/var/www
+      - ../kanastra-backend:/var/www
       - ./backend/nginx:/etc/nginx/conf.d
     networks:
       - kanastra
@@ -23,7 +23,7 @@ services:
       - "9000:9000"
     working_dir: /var/www/
     volumes:
-      - ../kanastra-challenge-backend:/var/www
+      - ../kanastra-backend:/var/www
     networks:
       - kanastra
 
@@ -36,7 +36,7 @@ services:
     container_name: process-file-queue
     working_dir: /var/www/
     volumes:
-      - ../kanastra-challenge-backend:/var/www
+      - ../kanastra-backend:/var/www
     command: php artisan queue:listen --queue=process_file --timeout=90000 --memory=512 --tries=3
     networks:
       - kanastra
@@ -50,7 +50,7 @@ services:
     container_name: process-boleto-queue
     working_dir: /var/www/
     volumes:
-      - ../kanastra-challenge-backend:/var/www
+      - ../kanastra-backend:/var/www
     command: php artisan queue:listen --queue=process_boleto --tries=3
     networks:
       - kanastra
