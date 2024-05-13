@@ -1,0 +1,88 @@
+version: "3.7"
+services:
+  backend-nginx:
+    image: nginx:1.17-alpine
+    container_name: backend-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ../kanastra-challenge-backend:/var/www
+      - ./backend/nginx:/etc/nginx/conf.d
+    networks:
+      - kanastra
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: backend
+    container_name: backend
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    working_dir: /var/www/
+    volumes:
+      - ../kanastra-challenge-backend:/var/www
+    networks:
+      - kanastra
+
+  process-file-queue:
+    restart: always
+    build:
+      context: ./queue
+      dockerfile: Dockerfile
+    image: process-file-queue
+    container_name: process-file-queue
+    working_dir: /var/www/
+    volumes:
+      - ../kanastra-challenge-backend:/var/www
+    command: php artisan queue:listen --queue=process_file --timeout=90000 --memory=512 --tries=3
+    networks:
+      - kanastra
+
+  process-boleto-queue:
+    restart: always
+    build:
+      context: ./queue
+      dockerfile: Dockerfile
+    image: process-boleto-queue
+    container_name: process-boleto-queue
+    working_dir: /var/www/
+    volumes:
+      - ../kanastra-challenge-backend:/var/www
+    command: php artisan queue:listen --queue=process_boleto --tries=3
+    networks:
+      - kanastra
+
+  rabbitmq:
+    image: rabbitmq:3.9-management
+    container_name: kanastra-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - kanastra
+
+  database:
+    image: mysql:5.7
+    container_name: kanastra-db
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: kanastra
+      MYSQL_PASSWORD: kanastra
+      MYSQL_USER: kanastra
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./mysql:/docker-entrypoint-initdb.d
+      - ../mysql:/var/lib/mysql
+    networks:
+      - kanastra
+
+networks:
+  kanastra:
+    driver: bridge
